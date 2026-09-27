@@ -4,6 +4,7 @@ import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import RoomPrice from "./pages/Master/RoomPrice";
 import Billing from "./pages/Billing";
+import Order from "./pages/Order";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/room-price" element={<RoomPrice />} />
         <Route path="/billing/:roomId" element={<Billing />} />
+        <Route path="/order/:transactionId" element={<Order />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
         </Route>

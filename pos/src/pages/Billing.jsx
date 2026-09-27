@@ -140,7 +140,10 @@ export default function Billing() {
               </div>
 
               <div className="d-flex justify-content-center gap-1">
-                <button className="btn btn-sm btn-dark action-btn">
+                <button
+                  className="btn btn-sm btn-dark action-btn"
+                  onClick={() => navigate(`/order/${room.transactions.id}`)}
+                >
                   Order
                 </button>
 
