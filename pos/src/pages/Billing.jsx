@@ -43,6 +43,13 @@ export default function Billing() {
     }
   };
 
+  const productItems = room?.transactions?.orders
+    .flatMap((order) => order.items)
+    .filter((item) => item.type === "PRODUCT");
+  const companionItems = room?.transactions?.orders
+    .flatMap((order) => order.items)
+    .filter((item) => item.type === "COMPANION");
+
   return (
     <>
       <div className="row p-2">
@@ -166,7 +173,7 @@ export default function Billing() {
                 </button>
 
                 <button className="btn btn-sm btn-dark action-btn">
-                  CheckOut
+                  Payment
                 </button>
 
                 <button
@@ -187,7 +194,38 @@ export default function Billing() {
                 <span className="card-title">Fnb Order</span>
               </div>
 
-              <div className="card-body">klkl</div>
+              <div className="card-body">
+                <table className="table table-sm table-hover mb-0">
+                  <thead
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 10,
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Price</th>
+                      <th scope="col">qty</th>
+                      <th scope="col">subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productItems &&
+                      productItems.map((item, i) => (
+                        <tr key={item.id}>
+                          <th scope="row">{i + 1}</th>
+                          <td>{item.name}</td>
+                          <td>{formatCurrency(item.unitPrice, "IDR")}</td>
+                          <td>{item.quantity}</td>
+                          <td>{formatCurrency(item.subtotal, "IDR")}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             <div className="card flex-fill">
