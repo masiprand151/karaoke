@@ -41,11 +41,11 @@ export default function CheckInModal({ show, onClose, room }) {
       };
 
       const res = await api.post("/transaction/checkin", data);
+      onClose?.();
       setCustomer("");
       setDuration(1);
       setPeople(1);
       setType("REGULAR");
-      onClose?.();
       toast.success(res.message);
     } catch (error) {
       toast.error(error.message);

@@ -34,8 +34,8 @@ export default function Billing() {
 
   return (
     <>
-      <div className="row">
-        <div className="col-6 col-md-4">
+      <div className="row p-2">
+        <div className="col-4">
           <div className="card">
             <div className="card-body">
               <InputList title={"Number"} value={room?.transactions?.id} />
@@ -141,15 +141,15 @@ export default function Billing() {
 
               <div className="d-flex justify-content-center gap-1">
                 <button className="btn btn-sm btn-dark action-btn">
-                  Order Fnb
-                </button>
-
-                <button className="btn btn-sm btn-dark action-btn">
-                  Order Lc
+                  Order
                 </button>
 
                 <button className="btn btn-sm btn-dark action-btn">
                   Move Room
+                </button>
+
+                <button className="btn btn-sm btn-dark action-btn">
+                  CheckOut
                 </button>
 
                 <button
@@ -162,7 +162,26 @@ export default function Billing() {
             </div>
           </div>
         </div>
-        <div className="col">{/* detail order */}</div>
+        <div className="col-8">
+          {/* detail order */}
+          <div className="d-flex flex-column h-100 gap-2">
+            <div className="card flex-fill">
+              <div className="card-header">
+                <span className="card-title">Fnb Order</span>
+              </div>
+
+              <div className="card-body">klkl</div>
+            </div>
+
+            <div className="card flex-fill">
+              <div className="card-header">
+                <span className="card-title">Companion Order</span>
+              </div>
+
+              <div className="card-body">klkl</div>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

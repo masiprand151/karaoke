@@ -5,10 +5,14 @@
 html,
 body,
 #root {
-  width: 1280px;
+  width: 1366px;
   height: 100%;
   margin: 0;
   overflow: hidden;
+}
+
+.row {
+  margin-right: 0 !important;
 }
 
 body {
@@ -466,6 +470,20 @@ body {
 
 .room-warning .room-timer {
   color: #997404;
+}
+
+.room-danger {
+  border-top: 3px solid #f83200;
+
+  background: #fffdf5;
+}
+
+.room-warning .room-status {
+  color: #a73715;
+}
+
+.room-warning .room-timer {
+  color: #a73715;
 }
 
 .room-maintenance {

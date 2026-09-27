@@ -3,22 +3,29 @@ import { formatDuration, getRemainingTime } from "../utils/remaining";
 import { useNavigate } from "react-router-dom";
 export default function RoomCard({ config, room, setSelected }) {
   const [remaining, setRemaining] = useState(null);
+  const [statusColor, setStatusColor] = useState(config.className);
   const navigate = useNavigate();
 
   const transaction = room.transactions?.[0];
+
   useEffect(() => {
     if (!transaction) return;
     const interval = setInterval(() => {
       const r = getRemainingTime(transaction.startTime, transaction.endTime);
+
+      if (r.isExpired) {
+        setStatusColor("room-danger");
+      }
+
+      if (r.warning) {
+        setStatusColor("room-warning");
+      }
+
       setRemaining(r);
     }, 1000);
 
     return () => clearInterval(interval);
-  });
-
-  const statusColor = remaining?.warning
-    ? config.classNameWarning
-    : config.className;
+  }, []);
 
   return (
     <div

@@ -131,7 +131,6 @@ const statusConfig = {
   OCCUPIED: {
     label: "Occupied",
     className: "room-occupied",
-    classNameWarning: "room-warning",
   },
 
   MAINTENANCE: {
@@ -147,7 +146,6 @@ function Home() {
   const getMonitoring = async () => {
     try {
       const result = await api.get("/room");
-      console.log(result);
 
       setRooms(result?.data);
     } catch (error) {
@@ -208,9 +206,9 @@ function Home() {
 
       <CheckInModal
         show={Boolean(selected)}
-        onClose={() => {
+        onClose={async () => {
           setSelected(null);
-          getMonitoring();
+          window.location.reload();
         }}
         room={selected}
       />
