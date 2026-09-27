@@ -32,6 +32,7 @@ app.use("/license", require("./router/license.route"));
 app.use("/user", require("./router/user.route"));
 app.use("/room", require("./router/room.route"));
 app.use("/product", require("./router/product.route"));
+app.use("/companion", require("./router/companion.route"));
 app.use("/transaction", require("./router/transaction.route"));
 
 // error middleware
