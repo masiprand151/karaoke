@@ -1,0 +1,277 @@
+// This is your Prisma schema file,
+// learn more about it in the docs:
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ======================================================
+// ENUM
+// ======================================================
+
+enum DayType {
+  REGULAR
+  PROMO
+  WEEKEND
+  PACKAGE
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum MasterPasswordType {
+  UPDATE
+  DISCOUNT
+  DELETE
+  ALL
+}
+
+enum LicenseStatus {
+  REGISTERED
+  UNREGISTERED
+  REVOKED
+}
+
+enum TransactionStatus {
+  PENDING
+  PAID
+  CLOSE
+  CANCEL
+}
+
+// ======================================================
+// LICENSE
+// ======================================================
+
+model License {
+  id       Int           @id @default(autoincrement())
+  key      String        @unique
+  deviceId String?       @unique
+  outletId String
+  status   LicenseStatus @default(UNREGISTERED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// USER
+// ======================================================
+
+model User {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  password   String
+  fullAccess Boolean   @default(false)
+  deletedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// MASTER PASSWORD
+// ======================================================
+
+model MasterPassword {
+  id       Int                @id @default(autoincrement())
+  type     MasterPasswordType @unique @default(ALL)
+  password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ======================================================
+// ROOM
+// ======================================================
+
+model Room {
+  id     Int        @id @default(autoincrement())
+  name   String     @unique
+  type   String
+  status RoomStatus @default(AVAILABLE)
+
+  // 1 Room mempunyai banyak harga
+  roomPrices RoomPrice[]
+
+  // 1 Room mempunyai banyak transaksi
+  transactions Transaction[]
+}
+
+// ======================================================
+// ROOM PRICE
+// ======================================================
+
+model RoomPrice {
+  id Int @id @default(autoincrement())
+
+  // FK ke Room
+  roomId Int
+
+  // Jenis hari / pricing
+  dayType DayType
+
+  // Jam mulai dan selesai
+  // contoh:
+  // 00:00 - 17:00
+  // 17:00 - 00:00
+  startTime String
+  endTime   String
+
+  price Decimal @db.Decimal(12, 2)
+
+  isActive Boolean @default(true)
+
+  // Relasi ke Room
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // Satu RoomPrice dapat digunakan banyak transaksi
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomId])
+  @@index([roomId, dayType])
+}
+
+// ======================================================
+// SETTING
+// ======================================================
+
+model Setting {
+  id Int @id @default(autoincrement())
+
+  isActive Boolean @unique @default(true)
+
+  // Pajak
+  taxPercent Int @default(10)
+
+  // Service
+  servicePercent Int @default(5)
+}
+
+// ======================================================
+// TRANSACTION
+// ======================================================
+
+model Transaction {
+  // Invoice number
+  id String @id @default(uuid())
+
+  // ====================================================
+  // ROOM
+  // ====================================================
+
+  // Room tempat transaksi berlangsung
+  roomId Int
+
+  // Harga yang digunakan ketika transaksi dibuat
+  priceId Int
+
+  // ====================================================
+  // CUSTOMER
+  // ====================================================
+
+  customerName  String
+  customerPhone String?
+
+  people Int @default(1)
+
+  // ====================================================
+  // TIME
+  // ====================================================
+
+  durationMinute Int
+
+  extendDuration Int @default(0)
+
+  freeDuration Int @default(0)
+
+  startTime DateTime
+
+  endTime DateTime
+
+  // ====================================================
+  // CASHIER
+  // ====================================================
+
+  cashier String
+
+  // ====================================================
+  // STATUS
+  // ====================================================
+
+  status TransactionStatus @default(PENDING)
+
+  // ====================================================
+  // BILLING
+  // ====================================================
+
+  roomTotal Decimal @db.Decimal(12, 2)
+
+  discPercent Int @default(0)
+
+  disAmount Decimal @default(0) @db.Decimal(12, 2)
+  
+  fnbTotal Decimal @default(0) @db.Decimal(12, 2)
+
+  companionTotal Decimal @default(0) @db.Decimal(12, 2)
+
+  subTotal Decimal @db.Decimal(12, 2)
+
+  tax Decimal @default(0) @db.Decimal(12, 2)
+
+  service Decimal @default(0) @db.Decimal(12, 2)
+
+  grandTotal Decimal @db.Decimal(12, 2)
+
+  // ====================================================
+  // RELATION
+  // ====================================================
+
+  // Transaction -> Room
+  room Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  // Transaction -> RoomPrice
+  roomPrice RoomPrice @relation(fields: [priceId], references: [id], onDelete: Restrict)
+
+  // ====================================================
+  // TIMESTAMP
+  // ====================================================
+
+  createdAt DateTime @default(now())
+
+  // ====================================================
+  // INDEX
+  // ====================================================
+
+  @@index([roomId])
+  @@index([priceId])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
+}
+
+// ======================================================
+// INVOICE COUNTER
+// ======================================================
+
+model InvoiceCounter {
+  id Int @id @default(autoincrement())
+
+  date DateTime @unique @db.Date
+
+  lastNumber Int @default(0)
+}

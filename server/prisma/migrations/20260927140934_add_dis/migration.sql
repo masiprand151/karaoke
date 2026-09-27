@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `transaction` ADD COLUMN `disAmount` DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    ADD COLUMN `discPercent` INTEGER NOT NULL DEFAULT 0;

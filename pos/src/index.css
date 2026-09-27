@@ -1,0 +1,488 @@
+* {
+  user-select: none;
+}
+
+html,
+body,
+#root {
+  width: 1280px;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #f4f6f9;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.login-page {
+  background: #f4f6f9;
+}
+
+.login-card {
+  border-radius: 14px;
+}
+
+.login-logo {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background: #212529;
+  color: #ffffff;
+
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.login-card .input-group-text {
+  border-right: 0;
+  color: #6c757d;
+}
+
+.login-card .input-group .form-control {
+  border-left: 0;
+}
+
+.login-card .input-group .form-control:focus {
+  border-left: 0;
+  box-shadow: none;
+}
+
+.login-card .input-group:focus-within {
+  box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.1);
+  border-radius: 6px;
+}
+
+.login-card .input-group:focus-within .input-group-text,
+.login-card .input-group:focus-within .form-control {
+  border-color: #212529;
+}
+
+.login-card .btn-outline-secondary {
+  border-color: #dee2e6;
+}
+
+.login-card .btn-outline-secondary:hover {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.pos-layout {
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+
+  background: #f4f6f9;
+
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+
+.pos-sidebar {
+  width: 220px;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #212529;
+  color: #ffffff;
+
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  height: 70px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 18px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #212529;
+
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.sidebar-brand small {
+  color: #adb5bd;
+  font-size: 11px;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 15px 10px;
+}
+
+.menu-label {
+  padding: 8px 10px;
+
+  color: #6c757d;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.8px;
+}
+
+.menu-item {
+  width: 100%;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 12px;
+
+  margin-bottom: 4px;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+  color: #adb5bd;
+
+  font-size: 13px;
+
+  text-align: left;
+}
+
+.menu-item svg {
+  font-size: 17px;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.menu-item.active {
+  background: #ffffff;
+  color: #212529;
+}
+
+.sidebar-bottom {
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* MAIN */
+
+.pos-main {
+  flex: 1;
+
+  min-width: 0;
+  height: 720px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-header {
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 22px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #dee2e6;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.header-time {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #495057;
+
+  font-size: 13px;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.user-icon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e9ecef;
+}
+
+/* CONTENT */
+
+.pos-content {
+  flex: 1;
+
+  padding: 18px 22px;
+
+  overflow-y: auto;
+}
+
+/* STAT */
+
+.stat-card {
+  min-height: 70px;
+
+  padding: 12px 15px;
+
+  background: #ffffff;
+
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.stat-card small {
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.stat-card h4 {
+  margin: 3px 0 0;
+
+  font-size: 21px;
+}
+
+/* ROOM HEADER */
+
+.room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.room-legend {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  font-size: 11px;
+  color: #6c757d;
+}
+
+.room-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+
+  display: inline-block;
+
+  border-radius: 50%;
+}
+
+.legend-dot.available {
+  background: #0d6efd;
+}
+
+.legend-dot.occupied {
+  background: #198754;
+}
+
+.legend-dot.warning {
+  background: #ffc107;
+}
+
+.legend-dot.maintenance {
+  background: #6c757d;
+}
+
+/* ROOM GRID */
+
+.room-grid {
+  display: grid;
+
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+/* ROOM CARD */
+
+.room-card {
+  min-height: 120px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+
+  border: 1px solid #dee2e6;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+
+.room-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.room-card-header {
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 10px;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.room-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.room-status {
+  font-size: 9px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+}
+
+.room-body {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px;
+}
+
+.room-action {
+  color: #6c757d;
+
+  font-size: 11px;
+
+  text-align: center;
+}
+
+.customer-name {
+  margin-bottom: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.room-timer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* STATUS */
+
+.room-available {
+  border-top: 3px solid #0d6efd;
+}
+
+.room-available .room-status {
+  color: #0d6efd;
+}
+
+.room-occupied {
+  border-top: 3px solid #198754;
+}
+
+.room-occupied .room-status {
+  color: #198754;
+}
+
+.room-warning {
+  border-top: 3px solid #ffc107;
+
+  background: #fffdf5;
+}
+
+.room-warning .room-status {
+  color: #997404;
+}
+
+.room-warning .room-timer {
+  color: #997404;
+}
+
+.room-maintenance {
+  border-top: 3px solid #6c757d;
+
+  background: #f8f9fa;
+}
+
+.room-maintenance .room-status {
+  color: #6c757d;
+}
+
+.room-maintenance .room-body {
+  color: #6c757d;
+}
+
+.action-btn {
+  width: 20% !important;
+  flex: 0 0 25%;
+}

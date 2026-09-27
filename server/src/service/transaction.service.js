@@ -1,0 +1,94 @@
+const prisma = require("../lib/prisma");
+const AppError = require("../lib/app.error");
+const { generateInvoiceNumber } = require("../util/invoice");
+
+const checkin = async ({
+  customerName,
+  duration,
+  people,
+  type,
+  roomId,
+  cashier,
+}) => {
+  const result = await prisma.$transaction(async (trx) => {
+    if (!customerName) {
+      throw new AppError(400, "Customer name not be empty");
+    }
+
+    const pricing = await trx.roomPrice.findFirst({
+      where: {
+        dayType: type,
+      },
+    });
+
+    if (!pricing) {
+      throw new AppError(400, "Pleace check the pricing");
+    }
+
+    const room = await trx.room.findUnique({
+      where: {
+        id: Number(roomId),
+      },
+    });
+
+    if (!room) {
+      throw new AppError(404, "Room not found");
+    }
+
+    if (room.status !== "AVAILABLE") {
+      throw new AppError(404, "Pleace check the room in use or not");
+    }
+
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + duration * 60000);
+    const durationHour = duration / 60;
+    const roomTotal = Number(pricing.price) * durationHour;
+
+    const setting = await trx.setting.findUnique({
+      where: {
+        isActive: true,
+      },
+    });
+
+    const tax = (roomTotal * setting.taxPercent) / 100;
+    const service = (roomTotal * setting.servicePercent) / 100;
+
+    const grandTotal = roomTotal + tax + service;
+
+    const inv = await generateInvoiceNumber(trx);
+
+    const transaction = await trx.transaction.create({
+      data: {
+        id: inv,
+        customerName,
+        durationMinute: duration,
+        startTime,
+        endTime,
+        roomTotal,
+        subTotal: roomTotal,
+        tax,
+        service,
+        grandTotal,
+        people,
+        cashier,
+        priceId: pricing.id,
+        roomId: room.id,
+      },
+    });
+
+    await trx.room.update({
+      where: {
+        id: room.id,
+      },
+      data: {
+        status: "OCCUPIED",
+      },
+    });
+
+    return transaction;
+  });
+
+  return result;
+};
+
+module.exports = { checkin };
