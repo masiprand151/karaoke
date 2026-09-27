@@ -7,6 +7,7 @@ import OrderCompanion from "../components/OrderCompanion";
 export default function Order() {
   const { transactionId } = useParams();
   const [orderType, setOrderType] = useState("product");
+
   return (
     <>
       <Navbar title={`Order - ${transactionId}`} />
@@ -33,7 +34,9 @@ export default function Order() {
         </div>
 
         {/* content */}
-        {orderType === "product" && <OrderProduct />}
+        {orderType === "product" && (
+          <OrderProduct transactionId={transactionId} />
+        )}
         {orderType === "companion" && <OrderCompanion />}
       </div>
     </>

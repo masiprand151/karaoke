@@ -3,13 +3,15 @@ import useToast from "../hooks/useToast";
 import api from "../utils/api";
 import { BsDash, BsPlus, BsX } from "react-icons/bs";
 import formatCurrency from "../utils/formatRupiah";
+import { useNavigate } from "react-router-dom";
 
-export default function OrderProduct() {
+export default function OrderProduct({ transactionId }) {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
   const clickTimer = useRef(null);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const getProducts = async (q = "") => {
     try {
@@ -111,6 +113,22 @@ export default function OrderProduct() {
       clickTimer.current = null;
     }, 250);
   };
+
+  const handleOrder = async () => {
+    try {
+      console.log(transactionId);
+
+      const res = await api.post("/product/order", {
+        transactionId: transactionId,
+        items: cart,
+      });
+      toast.success(res.message);
+      navigate(-1);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   return (
     <div className="row">
       <div className="col-6">
@@ -252,7 +270,9 @@ export default function OrderProduct() {
           </div>
 
           <div className="card-footer d-flex justify-content-between">
-            <button className="btn btn-sm btn-primary">Order</button>
+            <button className="btn btn-sm btn-primary" onClick={handleOrder}>
+              Order
+            </button>
             <strong>Total</strong>
             <strong>{formatCurrency(cartTotal, "IDR")}</strong>
           </div>

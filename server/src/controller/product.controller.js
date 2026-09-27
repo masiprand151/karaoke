@@ -12,4 +12,16 @@ const getProducts = async (req, res, next) => {
   }
 };
 
-module.exports = { getProducts };
+const orderProduct = async (req, res, next) => {
+  try {
+    await service.orderProduct(req.body);
+
+    res.status(200).json({
+      message: "Order success",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getProducts, orderProduct };

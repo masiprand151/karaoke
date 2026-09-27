@@ -18,7 +18,10 @@ const getMonitoring = async () => {
     },
   });
 
-  return rooms;
+  return rooms.map((r) => ({
+    ...r,
+    transactions: r.status !== "AVAILABLE" ? r.transactions : [],
+  }));
 };
 
 const billing = async (roomId) => {
@@ -30,6 +33,16 @@ const billing = async (roomId) => {
       transactions: {
         include: {
           roomPrice: true,
+          orders: {
+            include: {
+              items: {
+                include: {
+                  product: true,
+                  companion: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",

@@ -91,4 +91,17 @@ const checkin = async ({
   return result;
 };
 
-module.exports = { checkin };
+const stopBill = async (roomId) => {
+  await prisma.$transaction(async (tx) => {
+    await tx.room.update({
+      where: {
+        id: Number(roomId),
+      },
+      data: {
+        status: "AVAILABLE",
+      },
+    });
+  });
+};
+
+module.exports = { checkin, stopBill };

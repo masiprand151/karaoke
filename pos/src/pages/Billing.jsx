@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import api from "../utils/api";
 import InputList from "../components/InputList";
 import formatCurrency from "../utils/formatRupiah";
+import useToast from "../hooks/useToast";
 
 export default function Billing() {
   const { roomId } = useParams();
   const [room, setRoom] = useState(null);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     (async () => {
@@ -31,6 +32,16 @@ export default function Billing() {
     month: "2-digit",
     year: "numeric",
   });
+
+  const handleStopBill = async () => {
+    try {
+      const res = await api.patch(`/transaction/stop/${room.id}`);
+      toast.success(res.message);
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <>
@@ -122,7 +133,10 @@ export default function Billing() {
           <div className="card">
             <div className="card-body">
               <div className="d-flex justify-content-center gap-1 mb-2">
-                <button className="btn btn-sm btn-dark action-btn">
+                <button
+                  className="btn btn-sm btn-dark action-btn"
+                  onClick={handleStopBill}
+                >
                   Stop Bill
                 </button>
 
