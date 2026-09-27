@@ -49,6 +49,35 @@ enum TransactionStatus {
   CANCEL
 }
 
+enum FnbCategory {
+  FOOD
+  DRINK
+  SNACK
+  OTHER
+}
+
+enum CompanionStatus {
+  AVAILABLE
+  BUSY
+  OFF
+}
+
+enum OrderStatus {
+  DRAFT
+  SENT
+  CANCELLED
+}
+
+enum OrderItemType {
+  PRODUCT
+  COMPANION
+}
+
+enum PackageItemType {
+  PRODUCT
+  COMPANION
+}
+
 // ======================================================
 // LICENSE
 // ======================================================
@@ -218,23 +247,17 @@ model Transaction {
   // ====================================================
   // BILLING
   // ====================================================
+  roomTotal   Decimal @db.Decimal(12, 2)
+  discPercent Int     @default(0)
+  disAmount   Decimal @default(0) @db.Decimal(12, 2)
 
-  roomTotal Decimal @db.Decimal(12, 2)
-
-  discPercent Int @default(0)
-
-  disAmount Decimal @default(0) @db.Decimal(12, 2)
-  
-  fnbTotal Decimal @default(0) @db.Decimal(12, 2)
-
+  fnbTotal       Decimal @default(0) @db.Decimal(12, 2)
+  packageTotal   Decimal @default(0) @db.Decimal(12, 2)
   companionTotal Decimal @default(0) @db.Decimal(12, 2)
 
-  subTotal Decimal @db.Decimal(12, 2)
-
-  tax Decimal @default(0) @db.Decimal(12, 2)
-
-  service Decimal @default(0) @db.Decimal(12, 2)
-
+  subTotal   Decimal @db.Decimal(12, 2)
+  tax        Decimal @default(0) @db.Decimal(12, 2)
+  service    Decimal @default(0) @db.Decimal(12, 2)
   grandTotal Decimal @db.Decimal(12, 2)
 
   // ====================================================
@@ -256,6 +279,7 @@ model Transaction {
   // ====================================================
   // INDEX
   // ====================================================
+  orders Order[]
 
   @@index([roomId])
   @@index([priceId])
@@ -274,4 +298,180 @@ model InvoiceCounter {
   date DateTime @unique @db.Date
 
   lastNumber Int @default(0)
+}
+
+model Product {
+  id       Int         @id @default(autoincrement())
+  name     String @unique
+  category FnbCategory
+  price    Decimal     @db.Decimal(12, 2)
+  stock    Decimal     @default(0) @db.Decimal(12, 2)
+  isActive Boolean     @default(true)
+
+  packageItems PackageItem[]
+  orderItems   OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+}
+
+model Companion {
+  id       Int             @id @default(autoincrement())
+  name     String
+  code     String?         @unique
+  price    Decimal         @db.Decimal(12, 2)
+  status   CompanionStatus @default(AVAILABLE)
+  isActive Boolean         @default(true)
+
+  packageItems      PackageItem[]
+  orderItems        OrderItem[]
+  packageOrderItems OrderPackageItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([status])
+  @@index([isActive])
+}
+
+model Package {
+  id             Int     @id @default(autoincrement())
+  name           String
+  description    String?
+  price          Decimal @db.Decimal(12, 2)
+  durationMinute Int?
+  isActive       Boolean @default(true)
+
+  items  PackageItem[]
+  orders OrderPackage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model PackageItem {
+  id        Int             @id @default(autoincrement())
+  packageId Int
+  type      PackageItemType
+
+  // Jika item adalah F&B
+  productId Int?
+
+  // Jika item adalah Companion
+  // boleh NULL = companion dipilih nanti / optional
+  companionId Int?
+
+  quantity Int @default(1)
+
+  package   Package    @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  product   Product?   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  companion Companion? @relation(fields: [companionId], references: [id], onDelete: Restrict)
+
+  orderItems OrderPackageItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([packageId])
+  @@index([productId])
+  @@index([companionId])
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  transactionId String
+  status        OrderStatus @default(DRAFT)
+  note          String?
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  items    OrderItem[]
+  packages OrderPackage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transactionId])
+  @@index([status])
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+
+  orderId Int
+  type    OrderItemType
+
+  productId   Int?
+  companionId Int?
+
+  name      String
+  quantity  Int     @default(1)
+  unitPrice Decimal @db.Decimal(12, 2)
+  subtotal  Decimal @db.Decimal(12, 2)
+
+  order     Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product?   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  companion Companion? @relation(fields: [companionId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([companionId])
+}
+
+model OrderPackage {
+  id Int @id @default(autoincrement())
+
+  orderId   Int
+  packageId Int
+
+  quantity  Int     @default(1)
+  unitPrice Decimal @db.Decimal(12, 2)
+  subtotal  Decimal @db.Decimal(12, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  package Package @relation(fields: [packageId], references: [id], onDelete: Restrict)
+
+  items OrderPackageItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([packageId])
+}
+
+model OrderPackageItem {
+  id Int @id @default(autoincrement())
+
+  orderPackageId Int
+  packageItemId  Int
+
+  quantity Int @default(1)
+
+  // Companion yang benar-benar dipilih
+  // NULL = tidak menggunakan companion
+  companionId Int?
+
+  orderPackage OrderPackage @relation(fields: [orderPackageId], references: [id], onDelete: Cascade)
+
+  packageItem PackageItem @relation(fields: [packageItemId], references: [id], onDelete: Restrict)
+
+  companion Companion? @relation(fields: [companionId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderPackageId])
+  @@index([packageItemId])
+  @@index([companionId])
 }
