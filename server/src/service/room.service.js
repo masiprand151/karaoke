@@ -32,6 +32,7 @@ const billing = async (roomId) => {
     include: {
       transactions: {
         include: {
+          payments: true,
           roomPrice: true,
           orders: {
             include: {

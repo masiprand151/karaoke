@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { FiCreditCard, FiDollarSign, FiCheckCircle } from "react-icons/fi";
@@ -13,6 +13,7 @@ export default function Payment() {
   const [type, setType] = useState("FINAL");
   const [amount, setAmount] = useState("");
   const toast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -80,6 +81,7 @@ export default function Payment() {
       });
 
       toast.success(result.message);
+      navigate(-1);
       // print
     } catch (error) {
       console.error(error);
