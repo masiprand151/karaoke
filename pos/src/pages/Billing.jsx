@@ -66,11 +66,19 @@ export default function Billing() {
     const updateRemaining = () => {
       const result = {};
 
-      companionItems.forEach((companion) => {
+      companionItems.forEach(async (companion) => {
         result[companion.name] = getRemainingTime(
           companion.startTime,
           companion.endTime,
         );
+
+        if (result[companion.name].isExpired) {
+          await api.post("/companion/stop", {
+            id: companion.companionId,
+            auto: true,
+            password: null,
+          });
+        }
       });
 
       setRemaining(result);

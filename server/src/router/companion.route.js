@@ -5,5 +5,6 @@ const controller = require("../controller/companion.controller");
 
 router.get("/", controller.getCompanions);
 router.post("/order", controller.order);
+router.post("/stop", controller.stop);
 
 module.exports = router;

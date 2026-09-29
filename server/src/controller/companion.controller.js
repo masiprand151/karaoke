@@ -21,4 +21,12 @@ const order = async (req, res, next) => {
   }
 };
 
-module.exports = { getCompanions, order };
+const stop = async (req, res, next) => {
+  await service.stop(req.body);
+
+  res.status(200).json({
+    message: "Successfuly stop companion",
+  });
+};
+
+module.exports = { getCompanions, order, stop };

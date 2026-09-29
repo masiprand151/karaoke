@@ -90,12 +90,59 @@ const checkin = async ({
 
   return result;
 };
-
 const stopBill = async (roomId) => {
   await prisma.$transaction(async (tx) => {
+    const roomIdNumber = Number(roomId);
+
+    // 1. Cari transaksi aktif pada room
+    const transaction = await tx.transaction.findFirst({
+      where: {
+        roomId: roomIdNumber,
+        status: {
+          in: ["PENDING", "PAID"],
+        },
+      },
+      include: {
+        orders: {
+          include: {
+            items: {
+              where: {
+                type: "COMPANION",
+                companionId: {
+                  not: null,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 2. Jika ada transaksi, bebaskan semua companion
+    if (transaction) {
+      const companionIds = transaction.orders
+        .flatMap((order) => order.items)
+        .map((item) => item.companionId)
+        .filter(Boolean);
+
+      if (companionIds.length > 0) {
+        await tx.companion.updateMany({
+          where: {
+            id: {
+              in: companionIds,
+            },
+          },
+          data: {
+            status: "AVAILABLE",
+          },
+        });
+      }
+    }
+
+    // 3. Bebaskan room
     await tx.room.update({
       where: {
-        id: Number(roomId),
+        id: roomIdNumber,
       },
       data: {
         status: "AVAILABLE",

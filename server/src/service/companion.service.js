@@ -2,6 +2,7 @@ const prisma = require("../lib/prisma");
 const AppError = require("../lib/app.error");
 const { Decimal } = require("../generated/prisma/runtime/library");
 const { calculateBilling } = require("../util/billing");
+const bcrypt = require("bcrypt");
 
 const getCompanions = async (search = "") => {
   const lcs = await prisma.companion.findMany({
@@ -221,4 +222,44 @@ const order = async ({ ladyId, transactionId, duration }) => {
   return result;
 };
 
-module.exports = { getCompanions, order };
+const stop = async ({ id, auto = false, password }) => {
+  if (auto) {
+    await prisma.companion.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        status: "AVAILABLE",
+      },
+    });
+
+    return;
+  }
+
+  if (!password) {
+    throw new AppError(400, "Password wrong");
+  }
+
+  const masterPw = await prisma.masterPassword.findFirst({
+    where: {
+      type: "UPDATE",
+    },
+  });
+
+  const valid = await bcrypt.compare(password, masterPw.password);
+  if (!valid) {
+    throw new AppError(400, "Password wrong");
+  }
+  await prisma.companion.update({
+    where: {
+      id: Number(id),
+    },
+    data: {
+      status: "AVAILABLE",
+    },
+  });
+
+  return;
+};
+
+module.exports = { getCompanions, order, stop };
