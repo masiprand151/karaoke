@@ -96,6 +96,23 @@ enum PackageItemType {
   COMPANION
 }
 
+enum StockMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum StockReferenceType {
+  PURCHASE
+  SALE
+  ORDER
+  ADJUSTMENT
+  INITIAL
+  RETURN
+  OTHER
+}
+
+
 // ======================================================
 // LICENSE
 // ======================================================
@@ -352,16 +369,102 @@ model Product {
   price    Decimal     @db.Decimal(12, 2)
   stock    Decimal     @default(0) @db.Decimal(12, 2)
   isActive Boolean     @default(true)
+  trackStock Boolean @default(true)
 
   packageItems PackageItem[]
   orderItems   OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  purchaseItems PurchaseItem[]
 
   @@index([name])
   @@index([category])
   @@index([isActive])
+  stockMovements StockMovement[]
+}
+
+
+model StockMovement {
+  id            Int                  @id @default(autoincrement())
+  productId     Int
+
+  type          StockMovementType
+  referenceType StockReferenceType
+
+  quantity      Decimal              @db.Decimal(12, 2)
+  stockBefore   Decimal              @db.Decimal(12, 2)
+  stockAfter    Decimal              @db.Decimal(12, 2)
+
+  note          String?
+
+  product       Product              @relation( fields: [productId], references: [id],onDelete: Restrict )
+
+  createdAt     DateTime             @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([referenceType])
+  @@index([createdAt])
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String
+  phone     String?
+  address   String?
+  email     String?
+  note      String?
+  isActive  Boolean   @default(true)
+
+  purchases Purchase[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Purchase {
+  id          Int             @id @default(autoincrement())
+  supplierId  Int
+
+  invoiceNo   String?
+  purchaseDate DateTime       @default(now())
+
+  subtotal    Decimal         @default(0) @db.Decimal(12, 2)
+  discount    Decimal         @default(0) @db.Decimal(12, 2)
+  total       Decimal         @default(0) @db.Decimal(12, 2)
+
+  note        String?
+
+  supplier    Supplier        @relation( fields: [supplierId], references: [id],  onDelete: Restrict)
+
+  items       PurchaseItem[]
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([supplierId])
+  @@index([purchaseDate])
+}
+
+model PurchaseItem {
+  id          Int       @id @default(autoincrement())
+  purchaseId  Int
+  productId   Int
+
+  quantity    Decimal   @db.Decimal(12, 2)
+  price       Decimal   @db.Decimal(12, 2)
+  subtotal    Decimal   @db.Decimal(12, 2)
+
+  purchase    Purchase  @relation(fields: [purchaseId],references: [id],onDelete: Cascade)
+
+  product     Product   @relation(fields: [productId], references: [id],onDelete: Restrict)
+
+  @@index([purchaseId])
+  @@index([productId])
 }
 
 model Companion {

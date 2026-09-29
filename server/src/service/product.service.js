@@ -155,6 +155,38 @@ const orderProduct = async ({ transactionId, items = [] }) => {
           subtotal,
         },
       });
+
+      // kelola stock
+      if (product.trackStock) {
+        if (Number(product.stock) < quantity) {
+          throw new AppError(400, "Stock tidak mencukupi");
+        }
+
+        const stockBefore = product.stock;
+
+        const updatedProduct = await tx.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            stock: {
+              decrement: quantity,
+            },
+          },
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            productId: product.id,
+            type: "OUT",
+            referenceType: "ORDER",
+            quantity,
+            stockBefore,
+            stockAfter: updatedProduct.stock,
+            note: "Penjualan F&B",
+          },
+        });
+      }
     }
 
     // =========================================
@@ -243,8 +275,6 @@ const orderProduct = async ({ transactionId, items = [] }) => {
       transaction: updatedTransaction,
     };
   });
-
-  console.log(result);
 
   return result;
 };
