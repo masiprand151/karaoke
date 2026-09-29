@@ -221,4 +221,113 @@ const close = async (id) => {
   return;
 };
 
-module.exports = { checkin, stopBill, close };
+const createPayment = async (id, { type = "PARTIAL", method, amount }) => {
+  const paymentAmount = Number(amount);
+
+  if (!method) {
+    throw new AppError(400, "Payment method must be filled in");
+  }
+
+  if (paymentAmount <= 0) {
+    throw new AppError(400, "The payment amount must be more than 0");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // ============================
+    // TRANSACTION
+    // ============================
+
+    const transaction = await tx.transaction.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        payments: {
+          where: {
+            status: "PAID",
+          },
+        },
+      },
+    });
+
+    if (!transaction) {
+      throw new AppError(404, "Transaction not found");
+    }
+
+    // ============================
+    // HITUNG PEMBAYARAN
+    // ============================
+
+    const grandTotal = Number(transaction.grandTotal);
+
+    const paidTotal = transaction.payments.reduce(
+      (total, payment) => total + Number(payment.amount),
+      0,
+    );
+
+    const remaining = grandTotal - paidTotal;
+
+    if (remaining <= 0) {
+      throw new AppError(400, "The bill is paid off");
+    }
+
+    // ============================
+    // VALIDASI
+    // ============================
+
+    if (paymentAmount > remaining && method !== "CASH") {
+      throw new AppError(400, "Payment exceeds the remaining bill");
+    }
+
+    if (type === "FINAL" && paymentAmount < remaining) {
+      throw new AppError(400, "The final payment has to settle the bill");
+    }
+
+    // ============================
+    // BUAT PAYMENT
+    // ============================
+
+    const payment = await tx.payment.create({
+      data: {
+        transactionId: id,
+        type,
+        method,
+        status: "PAID",
+        amount: paymentAmount,
+      },
+    });
+
+    // ============================
+    // HITUNG TOTAL BARU
+    // ============================
+
+    const newPaidTotal = paidTotal + paymentAmount;
+
+    const isPaid = newPaidTotal >= grandTotal;
+
+    // ============================
+    // UPDATE TRANSACTION
+    // ============================
+
+    const updatedTransaction = await tx.transaction.update({
+      where: {
+        id,
+      },
+      data: {
+        status: isPaid ? "PAID" : "PENDING",
+      },
+    });
+
+    return {
+      payment,
+      transaction: updatedTransaction,
+      grandTotal,
+      paidTotal: newPaidTotal,
+      remaining: Math.max(0, grandTotal - newPaidTotal),
+    };
+  });
+
+  return result;
+};
+
+module.exports = { checkin, stopBill, close, createPayment };

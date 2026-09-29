@@ -36,4 +36,17 @@ const close = async (req, res, next) => {
   }
 };
 
-module.exports = { checkin, stopBill, close };
+const createPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await service.createPayment(id, req.body);
+
+    res.json({
+      message: "Payment successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { checkin, stopBill, close, createPayment };

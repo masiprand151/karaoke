@@ -45,7 +45,7 @@ export default function RoomCard({ config, room, setSelected }) {
   const handleClickRoom = () => {
     if (room?.transactions.length > 0) {
       if (transaction.status === "CLOSE") {
-        console.log("payment");
+        navigate(`/payment/${room.id}`);
       } else {
         navigate(`/billing/${room.id}`);
       }
