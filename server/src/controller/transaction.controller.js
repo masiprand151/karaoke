@@ -49,4 +49,16 @@ const createPayment = async (req, res, next) => {
   }
 };
 
-module.exports = { checkin, stopBill, close, createPayment };
+const extendDuration = async (req, res, next) => {
+  try {
+    await service.extendDuration(req.body);
+
+    res.json({
+      message: "Duration successfully updated",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { checkin, stopBill, close, createPayment, extendDuration };

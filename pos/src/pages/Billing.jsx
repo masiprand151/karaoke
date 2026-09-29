@@ -16,10 +16,12 @@ export default function Billing() {
   const [remaining, setRemaining] = useState(null);
   const [selected, setSelected] = useState(null);
   const [newQty, setNewQty] = useState(0);
+  const [newDuration, setNewDuration] = useState(0);
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const toast = useToast();
   const [showReceipt, setShowReceipt] = useState(false);
+  const [action, setAction] = useState(null);
 
   const getPreview = async () => {
     const res = await api.get(`/room/billing/${roomId}`);
@@ -130,6 +132,27 @@ export default function Billing() {
     }
   };
 
+  const handleExtendDuration = async () => {
+    try {
+      if (newDuration > 0) {
+        const duration = newDuration - extend;
+        const res = await api.post("/transaction/extend", {
+          transactionId: room?.transactions?.id,
+          duration: duration * 60,
+        });
+
+        toast.success(res.message);
+        setAction(null);
+        setNewDuration(0);
+        getPreview();
+      } else {
+        // update
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   return (
     <>
       <div className="row p-2">
@@ -149,17 +172,22 @@ export default function Billing() {
               <InputList title={"Status"} value={room?.transactions?.status} />
               <InputList
                 title={"Duration"}
+                type="end"
                 onUpdate={() => {}}
                 value={hour || "0"}
               />
               <InputList
                 title={"Extra time"}
-                onUpdate={() => {}}
+                type="end"
+                onUpdate={() => {
+                  setNewDuration(extend);
+                  setAction("extend");
+                }}
                 value={extend || "0"}
               />
               <InputList
                 title={"Total time"}
-                onUpdate={() => {}}
+                type="end"
                 value={totalTime || "0"}
               />
 
@@ -421,6 +449,32 @@ export default function Billing() {
             disabled={newQty >= selected?.quantity}
           />
         </div>
+      </BaseModal>
+
+      <BaseModal
+        show={Boolean(action)}
+        title={String(action).toUpperCase()}
+        onClose={() => {
+          setAction(null);
+          setNewDuration(0);
+        }}
+        footer={
+          <>
+            <button className="btn btn-primary" onClick={handleExtendDuration}>
+              Save
+            </button>
+          </>
+        }
+      >
+        <Count
+          value={newDuration}
+          onMin={() => {
+            setNewDuration((prev) => (prev <= 0 ? 0 : prev - 1));
+          }}
+          onPlus={() => {
+            setNewDuration((prev) => (prev >= 10 ? 10 : prev + 1));
+          }}
+        />
       </BaseModal>
 
       <Receipt

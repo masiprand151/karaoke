@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma");
 const AppError = require("../lib/app.error");
 const { generateInvoiceNumber } = require("../util/invoice");
+const { calculateBilling } = require("../util/billing");
 
 const checkin = async ({
   customerName,
@@ -90,6 +91,160 @@ const checkin = async ({
 
   return result;
 };
+
+const extendDuration = async ({ transactionId, duration }) => {
+  const result = await prisma.$transaction(async (tx) => {
+    // =========================================
+    // VALIDASI
+    // =========================================
+
+    if (!transactionId) {
+      throw new AppError(400, "Transaction ID is required");
+    }
+
+    const extendMinute = Number(duration);
+
+    if (!Number.isInteger(extendMinute) || extendMinute <= 0) {
+      throw new AppError(400, "Duration must be greater than 0");
+    }
+
+    // =========================================
+    // GET TRANSACTION
+    // =========================================
+
+    const transaction = await tx.transaction.findUnique({
+      where: {
+        id: transactionId,
+      },
+    });
+
+    if (!transaction) {
+      throw new AppError(404, "Transaction not found");
+    }
+
+    if (transaction.status === "CLOSE" || transaction.status === "CANCEL") {
+      throw new AppError(400, "Transaction cannot be extended");
+    }
+
+    // =========================================
+    // PRICING
+    // =========================================
+
+    const pricing = await tx.roomPrice.findFirst({
+      where: {
+        id: transaction.priceId,
+        dayType: "REGULAR",
+      },
+    });
+
+    if (!pricing) {
+      throw new AppError(400, "Please check the room pricing");
+    }
+
+    // =========================================
+    // HITUNG TAMBAHAN
+    // =========================================
+
+    const durationHour = extendMinute / 60;
+
+    const additionalRoomTotal = Number(pricing.price) * durationHour;
+
+    const newRoomTotal = Number(transaction.roomTotal) + additionalRoomTotal;
+
+    // =========================================
+    // END TIME BARU
+    // =========================================
+
+    const startTime = new Date(transaction.startTime);
+
+    const currentEndTime = new Date(transaction.endTime);
+
+    const newEndTime = new Date(
+      currentEndTime.getTime() + extendMinute * 60 * 1000,
+    );
+
+    // =========================================
+    // TOTAL DURASI
+    // =========================================
+
+    const newDurationMinute = transaction.durationMinute + extendMinute;
+
+    const newExtendDuration = transaction.extendDuration + extendMinute;
+
+    // =========================================
+    // SETTING
+    // =========================================
+
+    const setting = await tx.setting.findFirst({
+      where: {
+        isActive: true,
+      },
+    });
+
+    const taxPercent = setting?.taxPercent ?? 10;
+
+    const servicePercent = setting?.servicePercent ?? 5;
+
+    // =========================================
+    // HITUNG BILLING
+    // =========================================
+
+    const bill = calculateBilling({
+      roomTotal: newRoomTotal,
+      fnbTotal: Number(transaction.fnbTotal),
+      companionTotal: Number(transaction.companionTotal),
+      packageTotal: Number(transaction.packageTotal),
+      discPercent: Number(transaction.discPercent),
+      taxPercent,
+      servicePercent,
+    });
+
+    // =========================================
+    // UPDATE
+    // =========================================
+
+    const updated = await tx.transaction.update({
+      where: {
+        id: transaction.id,
+      },
+
+      data: {
+        durationMinute: transaction.durationMinute,
+
+        extendDuration: newExtendDuration,
+
+        startTime,
+
+        endTime: newEndTime,
+
+        roomTotal: bill.roomTotal,
+
+        fnbTotal: bill.fnbTotal,
+
+        companionTotal: bill.companionTotal,
+
+        packageTotal: bill.packageTotal,
+
+        subTotal: bill.subTotal,
+
+        tax: bill.tax,
+
+        service: bill.service,
+
+        grandTotal: bill.grandTotal,
+
+        disAmount: bill.disAmount,
+
+        discPercent: bill.discPercent,
+      },
+    });
+
+    return updated;
+  });
+
+  return result;
+};
+
 const stopBill = async (roomId) => {
   await prisma.$transaction(async (tx) => {
     const roomIdNumber = Number(roomId);
@@ -330,4 +485,4 @@ const createPayment = async (id, { type = "PARTIAL", method, amount }) => {
   return result;
 };
 
-module.exports = { checkin, stopBill, close, createPayment };
+module.exports = { checkin, stopBill, close, createPayment, extendDuration };
