@@ -5,12 +5,16 @@ import { useEffect } from "react";
 import formatCurrency from "../utils/formatRupiah";
 import BaseModal from "./BaseModal";
 import Count from "./Count";
+import useToast from "../hooks/useToast";
+import { useNavigate } from "react-router-dom";
 
-export default function OrderCompanion() {
+export default function OrderCompanion({ transactionId }) {
   const [search, setSearch] = useState("");
   const [companions, setCompanions] = useState([]);
   const [selected, setSelected] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const toast = useToast();
+  const navigate = useNavigate();
 
   const getCompanions = async (q = "") => {
     try {
@@ -27,9 +31,20 @@ export default function OrderCompanion() {
   }, [search]);
 
   const handleOrder = async () => {
-    console.log("ok");
-    setSelected(null);
-    setQuantity(1);
+    try {
+      const res = await api.post("/companion/order", {
+        ladyId: Number(selected.id),
+        transactionId,
+        duration: quantity,
+      });
+
+      toast.success(res.message);
+      setSelected(null);
+      setQuantity(1);
+      getCompanions("");
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   return (

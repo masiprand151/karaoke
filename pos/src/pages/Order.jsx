@@ -37,7 +37,9 @@ export default function Order() {
         {orderType === "product" && (
           <OrderProduct transactionId={transactionId} />
         )}
-        {orderType === "companion" && <OrderCompanion />}
+        {orderType === "companion" && (
+          <OrderCompanion transactionId={transactionId} />
+        )}
       </div>
     </>
   );

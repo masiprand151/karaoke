@@ -244,6 +244,8 @@ const orderProduct = async ({ transactionId, items = [] }) => {
     };
   });
 
+  console.log(result);
+
   return result;
 };
 

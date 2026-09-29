@@ -416,6 +416,9 @@ model OrderItem {
   quantity  Int     @default(1)
   unitPrice Decimal @db.Decimal(12, 2)
   subtotal  Decimal @db.Decimal(12, 2)
+  // lc
+  startTime     DateTime?      // mulai LC
+  endTime       DateTime?      // selesai LC
 
   order     Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product?   @relation(fields: [productId], references: [id], onDelete: Restrict)

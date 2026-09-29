@@ -1,4 +1,4 @@
-const service = require("../service/compaanion.sevice");
+const service = require("../service/companion.service");
 
 const getCompanions = async (req, res, next) => {
   try {
@@ -10,4 +10,15 @@ const getCompanions = async (req, res, next) => {
   }
 };
 
-module.exports = { getCompanions };
+const order = async (req, res, next) => {
+  try {
+    const result = await service.order(req.body);
+    res.status(200).json({
+      message: "Successfuly order companion",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getCompanions, order };
