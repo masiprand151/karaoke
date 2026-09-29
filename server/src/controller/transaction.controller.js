@@ -23,4 +23,17 @@ const stopBill = async (req, res, next) => {
   }
 };
 
-module.exports = { checkin, stopBill };
+const close = async (req, res, next) => {
+  try {
+    const transactionId = req.params.id;
+
+    await service.close(transactionId);
+    res.json({
+      message: "Transaction auto close",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { checkin, stopBill, close };

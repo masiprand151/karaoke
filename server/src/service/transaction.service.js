@@ -151,4 +151,74 @@ const stopBill = async (roomId) => {
   });
 };
 
-module.exports = { checkin, stopBill };
+const close = async (id) => {
+  const transaction = await prisma.transaction.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!transaction) {
+    return res.status(404).json({
+      message: "Transaction not found",
+    });
+  }
+
+  // Sudah close
+  if (transaction.status === "CLOSE") {
+    return res.json({
+      message: "Transaction closed",
+    });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // Close transaction
+    await tx.transaction.update({
+      where: {
+        id,
+      },
+      data: {
+        status: "CLOSE",
+      },
+    });
+
+    // Companion yang digunakan ikut available
+    const orders = await tx.order.findMany({
+      where: {
+        transactionId: id,
+      },
+      include: {
+        items: {
+          where: {
+            type: "COMPANION",
+            companionId: {
+              not: null,
+            },
+          },
+        },
+      },
+    });
+
+    const companionIds = orders
+      .flatMap((order) => order.items)
+      .map((item) => item.companionId)
+      .filter(Boolean);
+
+    if (companionIds.length > 0) {
+      await tx.companion.updateMany({
+        where: {
+          id: {
+            in: companionIds,
+          },
+        },
+        data: {
+          status: "AVAILABLE",
+        },
+      });
+    }
+  });
+
+  return;
+};
+
+module.exports = { checkin, stopBill, close };
