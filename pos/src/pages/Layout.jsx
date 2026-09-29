@@ -12,6 +12,7 @@ import {
   FiUser,
   FiHome,
 } from "react-icons/fi";
+import Bg from "../assets/bg.jpg";
 
 export default function Layout() {
   const [user, setUser, removeUser] = useStorage("user");
@@ -59,7 +60,18 @@ export default function Layout() {
   }
 
   return (
-    <div className="pos-layout">
+    <div
+      className="pos-layout"
+      style={{
+        backgroundImage: `linear-gradient(
+      rgba(0, 0, 0, 0.35),
+      rgba(0, 0, 0, 0.35)
+    ), url(${Bg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       {/* SIDEBAR */}
       <aside className="pos-sidebar">
         <div className="sidebar-brand">
