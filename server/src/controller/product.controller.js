@@ -23,5 +23,16 @@ const orderProduct = async (req, res, next) => {
     next(error);
   }
 };
+const updateOrderProduct = async (req, res, next) => {
+  try {
+    await service.updateOrderProduct(req.body);
 
-module.exports = { getProducts, orderProduct };
+    res.status(200).json({
+      message: "Update order success",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getProducts, orderProduct, updateOrderProduct };

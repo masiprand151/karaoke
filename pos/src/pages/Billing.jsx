@@ -5,21 +5,29 @@ import InputList from "../components/InputList";
 import formatCurrency from "../utils/formatRupiah";
 import useToast from "../hooks/useToast";
 import { getRemainingTime } from "../utils/remaining";
+import { BsPencilSquare, BsTrash } from "react-icons/bs";
+import BaseModal from "../components/BaseModal";
+import Count from "../components/Count";
 
 export default function Billing() {
   const { roomId } = useParams();
   const [room, setRoom] = useState(null);
   const [remaining, setRemaining] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [newQty, setNewQty] = useState(0);
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const toast = useToast();
 
-  useEffect(() => {
-    (async () => {
-      const res = await api.get(`/room/billing/${roomId}`);
-      console.log(res.data);
+  const getPreview = async () => {
+    const res = await api.get(`/room/billing/${roomId}`);
+    console.log(res.data);
 
-      setRoom(res.data);
-    })();
+    setRoom(res.data);
+  };
+
+  useEffect(() => {
+    getPreview();
   }, [roomId]);
 
   const hour = Number(room?.transactions?.durationMinute) / 60;
@@ -90,6 +98,36 @@ export default function Billing() {
 
     return () => clearInterval(interval);
   }, [room?.transactions?.id]);
+
+  const handleUpdateOrder = async () => {
+    try {
+      if (selected.type === "PRODUCT") {
+        // product
+
+        const data = {
+          transactionId: room?.transactions?.id,
+          password,
+          items: [
+            {
+              productId: selected.productId,
+              quantity: newQty,
+              id: selected.id,
+            },
+          ],
+        };
+
+        const res = await api.patch(`/product/order`, data);
+        toast.success(res.message);
+        getPreview();
+        setSelected(null);
+        setPassword("");
+      } else {
+        // companion
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <>
@@ -249,8 +287,9 @@ export default function Billing() {
                       <th scope="col">#</th>
                       <th scope="col">Name</th>
                       <th scope="col">Price</th>
-                      <th scope="col">qty</th>
-                      <th scope="col">subtotal</th>
+                      <th scope="col">Qty</th>
+                      <th scope="col">Subtotal</th>
+                      <th scope="col"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -262,6 +301,20 @@ export default function Billing() {
                           <td>{formatCurrency(item.unitPrice, "IDR")}</td>
                           <td>{item.quantity}</td>
                           <td>{formatCurrency(item.subtotal, "IDR")}</td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-primary me-2"
+                              onClick={() => {
+                                setSelected(item);
+                                setNewQty(item.quantity);
+                              }}
+                            >
+                              <BsPencilSquare />
+                            </button>
+                            <button className="btn btn-sm btn-danger">
+                              <BsTrash />
+                            </button>
+                          </td>
                         </tr>
                       ))}
                   </tbody>
@@ -316,6 +369,43 @@ export default function Billing() {
           </div>
         </div>
       </div>
+
+      {/* edit order */}
+      <BaseModal
+        show={Boolean(selected)}
+        onClose={() => {
+          setSelected(null);
+        }}
+        title={`Update ${selected?.type.toUpperCase()}`}
+        footer={
+          <>
+            <button className="btn btn-primary" onClick={handleUpdateOrder}>
+              Save
+            </button>
+          </>
+        }
+      >
+        <Count
+          value={newQty}
+          onMin={() => {
+            setNewQty((prev) => (prev <= 0 ? 0 : prev - 1));
+          }}
+          onPlus={() => {
+            setNewQty((prev) => (prev >= 10 ? 10 : prev + 1));
+          }}
+        />
+
+        <div className="mb-3">
+          <input
+            type="password"
+            className="form-control"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            disabled={newQty >= selected?.quantity}
+          />
+        </div>
+      </BaseModal>
     </>
   );
 }
