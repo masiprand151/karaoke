@@ -255,7 +255,10 @@ export default function Billing() {
                   Move Room
                 </button>
 
-                <button className="btn btn-sm btn-dark action-btn">
+                <button
+                  className="btn btn-sm btn-dark action-btn"
+                  onClick={() => navigate(`/payment/${room.id}`)}
+                >
                   Payment
                 </button>
 

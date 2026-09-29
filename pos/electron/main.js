@@ -39,7 +39,7 @@ app.on("window-all-closed", () => {
   }
 });
 
-ipcMain.handle("print-cashier", async (event, html) => {
+ipcMain.handle("print-receipt", async (event, { html, target = "cashier" }) => {
   const printWindow = new BrowserWindow({
     show: false,
 
@@ -64,7 +64,7 @@ ipcMain.handle("print-cashier", async (event, html) => {
     // =========================================
 
     let printer = printers.find((item) =>
-      item.name.toLowerCase().includes("cashier"),
+      item.name.toLowerCase().includes(target),
     );
     let silent = true;
 

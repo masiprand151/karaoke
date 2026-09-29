@@ -149,7 +149,10 @@ export default function Receipt({ data, showReceipt, setShowReceipt }) {
     </html>
   `;
     try {
-      const result = await window.electron.printCashier(html);
+      const result = await window.electron.printReceipt({
+        html,
+        target: "cashier",
+      });
 
       console.log("Print result:", result);
     } catch (error) {

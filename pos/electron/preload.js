@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld("electron", {
     return "1.0.0";
   },
 
-  printCashier: (html) => {
-    return ipcRenderer.invoke("print-cashier", html);
+  printReceipt: ({ html, target }) => {
+    return ipcRenderer.invoke("print-receipt", { html, target });
   },
 });
