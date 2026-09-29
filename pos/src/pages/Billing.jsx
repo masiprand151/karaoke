@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../utils/api";
 import InputList from "../components/InputList";
 import formatCurrency from "../utils/formatRupiah";
 import useToast from "../hooks/useToast";
+import { getRemainingTime } from "../utils/remaining";
 
 export default function Billing() {
   const { roomId } = useParams();
   const [room, setRoom] = useState(null);
+  const [remaining, setRemaining] = useState(null);
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -46,9 +48,40 @@ export default function Billing() {
   const productItems = room?.transactions?.orders
     .flatMap((order) => order.items)
     .filter((item) => item.type === "PRODUCT");
-  const companionItems = room?.transactions?.orders
-    .flatMap((order) => order.items)
-    .filter((item) => item.type === "COMPANION");
+  const companionItems = useMemo(
+    () =>
+      room?.transactions?.orders
+        .flatMap((order) => order.items)
+        .filter((item) => item.type === "COMPANION") || [],
+    [room?.transactions?.orders],
+  );
+
+  // remaining companion
+  useEffect(() => {
+    if (!companionItems?.length) {
+      setRemaining({});
+      return;
+    }
+
+    const updateRemaining = () => {
+      const result = {};
+
+      companionItems.forEach((companion) => {
+        result[companion.name] = getRemainingTime(
+          companion.startTime,
+          companion.endTime,
+        );
+      });
+
+      setRemaining(result);
+    };
+
+    updateRemaining();
+
+    const interval = setInterval(updateRemaining, 1000);
+
+    return () => clearInterval(interval);
+  }, [room?.transactions?.id]);
 
   return (
     <>
@@ -233,7 +266,44 @@ export default function Billing() {
                 <span className="card-title">Companion Order</span>
               </div>
 
-              <div className="card-body">klkl</div>
+              <div className="card-body">
+                <table className="table table-sm table-hover mb-0">
+                  <thead
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 10,
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Price</th>
+                      <th scope="col">duration</th>
+                      <th scope="col">remaining</th>
+                      <th scope="col">subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companionItems &&
+                      companionItems.map((item, i) => {
+                        const time = remaining?.[item.name];
+
+                        return (
+                          <tr key={item.id}>
+                            <th scope="row">{i + 1}</th>
+                            <td>{item.name}</td>
+                            <td>{formatCurrency(item.unitPrice, "IDR")}</td>
+                            <td>{item.quantity}</td>
+                            <td>{time?.remainingText}</td>
+                            <td>{formatCurrency(item.subtotal, "IDR")}</td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
