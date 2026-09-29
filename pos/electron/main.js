@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
 const isDev = !app.isPackaged;
@@ -36,5 +36,97 @@ app.whenReady().then(() => {
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
+  }
+});
+
+ipcMain.handle("print-cashier", async (event, html) => {
+  const printWindow = new BrowserWindow({
+    show: false,
+
+    webPreferences: {
+      sandbox: true,
+    },
+  });
+
+  try {
+    await printWindow.loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(html)}`,
+    );
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    });
+
+    const printers = await printWindow.webContents.getPrintersAsync();
+
+    // =========================================
+    // CARI PRINTER CASHIER / THERMAL
+    // =========================================
+
+    let printer = printers.find((item) =>
+      item.name.toLowerCase().includes("cashier"),
+    );
+    let silent = true;
+
+    // =========================================
+    // FALLBACK UNTUK TESTING
+    // =========================================
+
+    if (!printer) {
+      silent = false;
+      printer = printers.find((item) => item.name === "Microsoft Print to PDF");
+    }
+
+    // =========================================
+    // TIDAK ADA PRINTER
+    // =========================================
+
+    if (!printer) {
+      silent = false;
+      throw new Error("Printer tidak ditemukan");
+    }
+
+    // =========================================
+    // PRINT
+    // =========================================
+
+    await new Promise((resolve, reject) => {
+      printWindow.webContents.print(
+        {
+          silent,
+          printBackground: true,
+
+          deviceName: printer.name,
+
+          margins: {
+            marginType: "none",
+          },
+
+          pageSize: {
+            width: 80000,
+            height: 200000,
+          },
+        },
+
+        (success, failureReason) => {
+          if (!success) {
+            reject(new Error(failureReason || "Gagal mencetak receipt"));
+
+            return;
+          }
+
+          resolve();
+        },
+      );
+    });
+
+    return {
+      success: true,
+      printer: printer.name,
+    };
+  } finally {
+    if (!printWindow.isDestroyed()) {
+      printWindow.close();
+    }
   }
 });

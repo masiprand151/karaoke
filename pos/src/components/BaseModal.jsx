@@ -51,7 +51,7 @@ export default function BaseModal({
       <div
         className={`modal-dialog ${
           size ? `modal-${size}` : ""
-        } ${centered ? "modal-dialog-centered" : ""}`}
+        } ${centered ? "modal-dialog-centered" : ""}  modal-dialog-scrollable`}
       >
         <div className="modal-content">
           {/* HEADER */}

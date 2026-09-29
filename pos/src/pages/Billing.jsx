@@ -8,6 +8,7 @@ import { getRemainingTime } from "../utils/remaining";
 import { BsPencilSquare, BsTrash } from "react-icons/bs";
 import BaseModal from "../components/BaseModal";
 import Count from "../components/Count";
+import Receipt from "../components/Receipt";
 
 export default function Billing() {
   const { roomId } = useParams();
@@ -18,10 +19,10 @@ export default function Billing() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const toast = useToast();
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const getPreview = async () => {
     const res = await api.get(`/room/billing/${roomId}`);
-    console.log(res.data);
 
     setRoom(res.data);
   };
@@ -230,7 +231,10 @@ export default function Billing() {
                   Pending
                 </button>
 
-                <button className="btn btn-sm btn-dark action-btn">
+                <button
+                  className="btn btn-sm btn-dark action-btn"
+                  onClick={() => setShowReceipt(true)}
+                >
                   Preview
                 </button>
 
@@ -303,16 +307,13 @@ export default function Billing() {
                           <td>{formatCurrency(item.subtotal, "IDR")}</td>
                           <td>
                             <button
-                              className="btn btn-sm btn-primary me-2"
+                              className="btn btn-sm btn-primary"
                               onClick={() => {
                                 setSelected(item);
                                 setNewQty(item.quantity);
                               }}
                             >
                               <BsPencilSquare />
-                            </button>
-                            <button className="btn btn-sm btn-danger">
-                              <BsTrash />
                             </button>
                           </td>
                         </tr>
@@ -344,6 +345,7 @@ export default function Billing() {
                       <th scope="col">duration</th>
                       <th scope="col">remaining</th>
                       <th scope="col">subtotal</th>
+                      <th scope="col"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -359,6 +361,17 @@ export default function Billing() {
                             <td>{item.quantity}</td>
                             <td>{time?.remainingText}</td>
                             <td>{formatCurrency(item.subtotal, "IDR")}</td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-primary"
+                                onClick={() => {
+                                  setSelected(item);
+                                  setNewQty(item.quantity);
+                                }}
+                              >
+                                <BsPencilSquare />
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -406,6 +419,12 @@ export default function Billing() {
           />
         </div>
       </BaseModal>
+
+      <Receipt
+        data={room}
+        showReceipt={showReceipt}
+        setShowReceipt={setShowReceipt}
+      />
     </>
   );
 }
