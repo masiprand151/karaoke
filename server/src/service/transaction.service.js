@@ -2,6 +2,7 @@ const prisma = require("../lib/prisma");
 const AppError = require("../lib/app.error");
 const { generateInvoiceNumber } = require("../util/invoice");
 const { calculateBilling } = require("../util/billing");
+const bcrypt = require("bcrypt");
 
 const checkin = async ({
   customerName,
@@ -92,7 +93,7 @@ const checkin = async ({
   return result;
 };
 
-const extendDuration = async ({ transactionId, duration }) => {
+const extendDuration = async ({ transactionId, duration, password }) => {
   const result = await prisma.$transaction(async (tx) => {
     // =========================================
     // VALIDASI
@@ -148,6 +149,36 @@ const extendDuration = async ({ transactionId, duration }) => {
     const oldExtendDuration = transaction.extendDuration;
 
     const newExtendDuration = extendMinute < 0 ? 0 : extendMinute;
+
+    if (newExtendDuration < oldExtendDuration) {
+      if (typeof password !== "string" || password.trim() === "") {
+        throw new AppError(400, "Password is required when reducing quantity");
+      }
+
+      // =========================================
+      // GET MASTER PASSWORD
+      // =========================================
+
+      const master = await tx.masterPassword.findFirst({
+        where: {
+          type: "UPDATE",
+        },
+      });
+
+      if (!master) {
+        throw new AppError(500, "Master password is not configured");
+      }
+
+      // =========================================
+      // CHECK PASSWORD
+      // =========================================
+
+      const valid = await bcrypt.compare(password, master.password);
+
+      if (!valid) {
+        throw new AppError(400, "Password wrong");
+      }
+    }
 
     const difference = newExtendDuration - oldExtendDuration;
 

@@ -135,12 +135,10 @@ export default function Billing() {
   // tambah jam
   const handleExtendDuration = async () => {
     try {
-      const duration =
-        newDuration < extend ? newDuration : newDuration - extend;
-
       const res = await api.post("/transaction/extend", {
         transactionId: room?.transactions?.id,
-        duration: duration * 60,
+        duration: newDuration * 60,
+        password,
       });
 
       toast.success(res.message);
@@ -456,6 +454,7 @@ export default function Billing() {
         onClose={() => {
           setAction(null);
           setNewDuration(0);
+          setPassword("");
         }}
         footer={
           <>
@@ -474,6 +473,17 @@ export default function Billing() {
             setNewDuration((prev) => (prev >= 10 ? 10 : prev + 1));
           }}
         />
+
+        <div className="mb-3">
+          <input
+            type="password"
+            className="form-control"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            disabled={newDuration >= extend}
+          />
+        </div>
       </BaseModal>
 
       <Receipt
