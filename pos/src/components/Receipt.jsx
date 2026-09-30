@@ -34,7 +34,6 @@ export default function Receipt({ data, showReceipt, setShowReceipt }) {
   };
 
   const totalMinute = transaction?.durationMinute + transaction?.extendDuration;
-  const totalHour = totalMinute / 60;
 
   const printReceipt = async () => {
     const receipt = receiptRef.current;
@@ -237,7 +236,12 @@ export default function Receipt({ data, showReceipt, setShowReceipt }) {
         <div className="receipt-total">
           <div className="receipt-row">
             <span>Room</span>
-            <span>{totalHour} jam</span>
+            <span>
+              {transaction?.durationMinute / 60} jam
+              {transaction?.extendDuration
+                ? " + " + transaction.extendDuration / 60 + " jam"
+                : ""}
+            </span>
             <span>{formatRupiah(transaction?.roomTotal)}</span>
           </div>
 
