@@ -104,8 +104,8 @@ const extendDuration = async ({ transactionId, duration }) => {
 
     const extendMinute = Number(duration);
 
-    if (!Number.isInteger(extendMinute) || extendMinute <= 0) {
-      throw new AppError(400, "Duration must be greater than 0");
+    if (!Number.isInteger(extendMinute)) {
+      throw new AppError(400, "Duration must be 0 or greater");
     }
 
     // =========================================
@@ -142,17 +142,27 @@ const extendDuration = async ({ transactionId, duration }) => {
     }
 
     // =========================================
-    // HITUNG TAMBAHAN
+    // HITUNG SELISIH EXTEND
     // =========================================
 
-    const durationHour = extendMinute / 60;
+    const oldExtendDuration = transaction.extendDuration;
 
-    const additionalRoomTotal = Number(pricing.price) * durationHour;
+    const newExtendDuration = extendMinute < 0 ? 0 : extendMinute;
 
-    const newRoomTotal = Number(transaction.roomTotal) + additionalRoomTotal;
+    const difference = newExtendDuration - oldExtendDuration;
 
     // =========================================
-    // END TIME BARU
+    // TAMBAHAN / PENGURANGAN ROOM
+    // =========================================
+
+    const durationHour = difference / 60;
+
+    const roomChange = Number(pricing.price) * durationHour;
+
+    const newRoomTotal = Number(transaction.roomTotal) + roomChange;
+
+    // =========================================
+    // END TIME
     // =========================================
 
     const startTime = new Date(transaction.startTime);
@@ -160,16 +170,18 @@ const extendDuration = async ({ transactionId, duration }) => {
     const currentEndTime = new Date(transaction.endTime);
 
     const newEndTime = new Date(
-      currentEndTime.getTime() + extendMinute * 60 * 1000,
+      currentEndTime.getTime() + difference * 60 * 1000,
     );
 
     // =========================================
-    // TOTAL DURASI
+    // DURASI
     // =========================================
 
-    const newDurationMinute = transaction.durationMinute + extendMinute;
+    const newDurationMinute = transaction.durationMinute + difference;
 
-    const newExtendDuration = transaction.extendDuration + extendMinute;
+    // =========================================
+    // VALIDASI
+    // =========================================
 
     // =========================================
     // SETTING
@@ -186,15 +198,20 @@ const extendDuration = async ({ transactionId, duration }) => {
     const servicePercent = setting?.servicePercent ?? 5;
 
     // =========================================
-    // HITUNG BILLING
+    // BILLING
     // =========================================
 
     const bill = calculateBilling({
       roomTotal: newRoomTotal,
+
       fnbTotal: Number(transaction.fnbTotal),
+
       companionTotal: Number(transaction.companionTotal),
+
       packageTotal: Number(transaction.packageTotal),
+
       discPercent: Number(transaction.discPercent),
+
       taxPercent,
       servicePercent,
     });

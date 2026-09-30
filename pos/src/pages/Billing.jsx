@@ -132,22 +132,21 @@ export default function Billing() {
     }
   };
 
+  // tambah jam
   const handleExtendDuration = async () => {
     try {
-      if (newDuration > 0) {
-        const duration = newDuration - extend;
-        const res = await api.post("/transaction/extend", {
-          transactionId: room?.transactions?.id,
-          duration: duration * 60,
-        });
+      const duration =
+        newDuration < extend ? newDuration : newDuration - extend;
 
-        toast.success(res.message);
-        setAction(null);
-        setNewDuration(0);
-        getPreview();
-      } else {
-        // update
-      }
+      const res = await api.post("/transaction/extend", {
+        transactionId: room?.transactions?.id,
+        duration: duration * 60,
+      });
+
+      toast.success(res.message);
+      setAction(null);
+      setNewDuration(0);
+      getPreview();
     } catch (error) {
       toast.error(error.message);
     }
