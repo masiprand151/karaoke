@@ -163,7 +163,7 @@ function Login() {
                     {/* Login */}
                     <button
                       type="submit"
-                      className="btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2"
+                      className="btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2 mb-2"
                       disabled={loading || (!test && !setting?.server)}
                     >
                       {loading ? (
@@ -182,6 +182,14 @@ function Login() {
                           <span>Login</span>
                         </>
                       )}
+                    </button>
+                    <button
+                      className="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-2"
+                      disabled={loading}
+                      type="button"
+                      onClick={() => window.electron.closeApp()}
+                    >
+                      Exit
                     </button>
                   </form>
 

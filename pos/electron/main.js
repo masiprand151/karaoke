@@ -21,6 +21,11 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
+
+  ipcMain.on("app-close", () => {
+    win.close();
+    process.exit(1);
+  });
 }
 
 app.whenReady().then(() => {

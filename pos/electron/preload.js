@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld("electron", {
   printReceipt: ({ html, target }) => {
     return ipcRenderer.invoke("print-receipt", { html, target });
   },
+  closeApp: () => ipcRenderer.send("app-close"),
 });
